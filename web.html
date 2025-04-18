@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">  <!-- Добавили мета-тег для кодировки -->
+    <title>Регистрация и Список Пользователей</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6ab7ff, #fff); /* Красивый градиент */
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #users-list {
+            margin-top: 20px;
+            width: 90%;
+            text-align: left;
+        }
+
+        #users-list p {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            word-break: break-word; /* Для длинных имен */
+        }
+
+        #error-message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Регистрация</h1>
+        <div id="error-message"></div>
+        <input type="text" id="username" placeholder="Имя пользователя">
+        <input type="password" id="password" placeholder="Пароль">
+        <button onclick="registerUser()">Зарегистрироваться</button>
+    </div>
+
+    <div class="container">
+        <h2>Список Пользователей</h2>
+        <div id="users-list">
+            <!-- Здесь будут отображаться пользователи -->
+        </div>
+    </div>
+
+    <script>
+        const usersList = document.getElementById('users-list');
+        const errorMessage = document.getElementById('error-message');
+
+        function registerUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                errorMessage.textContent = 'Пожалуйста, заполните все поля.';
+                return;
+            }
+
+            fetch('/register', {  // Изменили URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username, password: password })
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                    errorMessage.textContent = ''; // Очистить сообщение об ошибке
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Произошла ошибка при регистрации.');
+                    });
+                }
+            })
+            .then(data => {
+                // Успешная регистрация - обновим список пользователей
+                loadUsers();
+            })
+            .catch(error => {
+                errorMessage.textContent = error.message || 'Неизвестная ошибка при регистрации.';
+                console.error('Ошибка:', error);
+            });
+        }
+
+        function loadUsers() {
+            fetch('/users') // Получаем список пользователей
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Ошибка при получении списка пользователей.');
+                    }
+                })
+                .then(users => {
+                    usersList.innerHTML = ''; // Очистить текущий список
+                    users.forEach(user => {
+                        const p = document.createElement('p');
+                        p.textContent = user.username;
+                        usersList.appendChild(p);
+                    });
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки пользователей:', error);
+                    usersList.innerHTML = '<p>Не удалось загрузить пользователей.</p>';
+                });
+        }
+
+
+        // Загрузка списка пользователей при загрузке страницы
+        loadUsers();
+    </script>
+</body>
+</html>
