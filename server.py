@@ -5,7 +5,7 @@ import os
 import hashlib
 
 DB_FILE = "users.json"
-PORT = 8000
+PORT = 8080  # Изменен порт на 8080
 
 def load_users():
     if os.path.exists(DB_FILE):
@@ -25,7 +25,7 @@ def hash_password(password):
     return salt.hex() + ":" + hashed_password.hex()  # Сохраняем соль и хеш
 
 def verify_password(password, hashed_password_with_salt):
-    salt_hex, hashed_password_hex = hashed_password_with_salt.split(':')
+    salt_hex, hashed_password_with_salt.split(':')
     salt = bytes.fromhex(salt_hex)
     hashed_password_check = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
     return hashed_password_check.hex() == hashed_password_hex
